@@ -1,20 +1,19 @@
-from math import radians, cos, sin, asin, sqrt
 import csv
 from pprint import pprint
 import numpy
 from scipy.spatial import cKDTree
 
-class geo:
+class Geo:
 
     def __init__(self):
 
         self.data = []
         self.regions = []
 
-        for row in csv.DictReader(open('postcodes.csv', 'rb'),  ["id","postcode","lat","lng"]):
+        for row in csv.DictReader(open('postcodes.csv', 'rb'), ["id", "postcode", "lat", "lng"]):
             self.data.append(row)
 
-        for row in csv.DictReader(open('postcodeareas.csv', 'rU'), ["initial","region"]):
+        for row in csv.DictReader(open('postcodeareas.csv', 'rU'), ["initial", "region"]):
             self.regions.append(row)
 
         for row in self.data:
@@ -25,36 +24,53 @@ class geo:
 
         self.tree = cKDTree(self.getCordinates())
 
+    @staticmethod
+    def postcodetoareacode(self, postcode):
+        '''Returns the post code region for a post code
 
+        This truncates the f substring of letter e.g. YO26 -> YO
 
-    def postcodeToAreaCode(self, postcode):
+        '''
         r = ""
         t = True
         for l in postcode:
             if l.isdigit() == False:
                 if t == True:
-                    r+=str(l)
+                    r += str(l)
             else:
                 t = False
         return r
 
-    def getCordinates(self):
-        return [[float(record["lat"]),float(record["lng"])] for record in self.data]
+    def coordinates(self):
+        '''Returns a list of all the coordinates of all the postcodes in the list
 
-    def getPostCodes(self):
+        '''
+        return [[float(record["lat"]), float(record["lng"])] for record in self.data]
+
+    def postcodes(self):
+        '''
+        Returns a list of all the post codes
+        '''
         return list(set([record["postcode"] for record in self.data]))
 
-    def getPostCodeRegions(self):
+    def postcoderegions(self):
+        '''
+        Returnes a list of all the post code regions
+        '''
         return list(set([record["area"] for record in self.data]))
-        #return self.dataRegion.keys()
 
-    def getRegions(self):
+    def regions(self):
+        '''
+        Returns a list of all the regions
+        '''
         return list(set([record["region"] for record in self.data]))
 
-
-    def findNearestPostCode(self, long, lat, k = 2):
+    def findnearestpostcode(self, long, lat, k=2):
+        '''
+        Returns a list of k nearest nabours of points in the UK
+        '''
         r = []
-        dists, indexes = self.tree.query(numpy.array([long , lat]), k)
+        dists, indexes = self.tree.query(numpy.array([long, lat]), k)
         if k > 1:
             for dist, index in zip(dists, indexes):
                 tmp = self.data[index]
@@ -67,25 +83,31 @@ class geo:
 
         return r
 
-    def getPostCodesInArea(self, area):
+    def postcodesinarea(self, area):
+        '''
+        Returnes a list of all the postcodes in an area.
+        '''
         tmp = []
         for row in self.data:
             if row["area"] == area:
                 tmp.append(row)
         return tmp
 
-    def getPostCodeRegonsInRegon(self, regon):
+    def postcoderegonsinregon(self, region):
+        '''
+        List all the post code in a region
+        '''
         tmp = []
         for row in self.data:
-            if row["region"] == regon:
+            if row["region"] == region:
                 tmp.append(row)
         return tmp
 
-
 def main():
-    g = geo()
+    g = Geo()
     pprint(g.getPostCodesInArea("DN"))
     pprint(g.findNearestPostCode(53.954343, -1.079407, 1));
+
 
 if __name__ == "__main__":
     main()
